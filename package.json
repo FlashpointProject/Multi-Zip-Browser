@@ -1,0 +1,31 @@
+{
+  "name": "multi-zip-browser",
+  "version": "1.0.0",
+  "description": "",
+  "license": "MIT",
+  "author": "Flashpoint Archive",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "watch": "npx tsx --watch src/index.ts",
+    "start": "npx tsx src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@fparchive/multi-zip-reader": "file:../tmp/multi-zip-reader.tgz",
+    "@types/express": "^5.0.5",
+    "@types/mongodb": "^4.0.6",
+    "@types/node": "^22.19.1",
+    "@types/passport-oauth2": "^1.8.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-handlebars": "^8.0.2",
+    "hbs": "^4.2.0",
+    "mime": "^4.1.0",
+    "mongodb": "^7.0.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "passport-oauth2": "^1.8.0"
+  }
+}

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse{{#if encodedArchive}} Archive{{/if}}: /{{dirPath}}</title>
+  <link rel="stylesheet" href="{{prefix}}/styles/common.css">
+</head>
+<body>
+  <div class="container container-grow">
+    <div class="header">
+      <h1>📁 File Browser{{#if archivePath}} - {{archivePath}}{{/if}}</h1>
+      <div class="breadcrumb">
+        {{#if encodedArchive}}
+          <a href="{{prefix}}/browse">Browse All</a>
+        {{/if}}
+        <a href="{{prefix}}/browse{{#if encodedArchive}}?archive={{encodedArchive}}{{/if}}">Home</a>
+        {{#each breadcrumbs}}
+          / <a href="{{../prefix}}/browse/{{this.path}}{{#if ../encodedArchive}}?archive={{../encodedArchive}}{{/if}}">{{this.name}}</a>
+        {{/each}}
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input 
+        type="text" 
+        class="filter-input" 
+        id="filterInput" 
+        placeholder="Filter files and folders... (Press / to focus)"
+        autocomplete="off"
+      >
+    </div>
+    <div class="content">
+      <div class="virtual-scroll-container simple-scroll" id="scrollContainer">
+        <div class="virtual-scroll-spacer" id="spacer">
+          <div class="virtual-scroll-content" id="content"></div>
+        </div>
+      </div>
+      <div class="no-results" id="noResults" style="display: none;">
+        🔍 No items match your filter
+      </div>
+    </div>
+    <div class="stats">
+      <span id="visibleCount">
+        {{dirCount}} folder{{#unless dirPlural}}{{else}}s{{/unless}}, 
+        {{fileCount}} file{{#unless filePlural}}{{else}}s{{/unless}}
+      </span>
+    </div>
+  </div>
+
+  <script>
+    // Data from server
+    const allItems = [
+      {{#if hasParent}}
+      {
+        type: 'parent',
+        name: 'Up',
+        path: '{{parentPath}}',
+        icon: '⬆️'
+      },
+      {{/if}}
+      {{#each directories}}
+      {
+        type: 'directory',
+        name: '{{this.name}}',
+        path: '{{this.path}}',
+        icon: '📁'
+      },
+      {{/each}}
+      {{#each files}}
+      {
+        type: 'file',
+        name: '{{this.name}}',
+        path: '{{this.path}}',
+        icon: '📄'
+      },
+      {{/each}}
+    ].filter(item => item.name); // Remove empty items
+
+    const totalDirs = {{dirCount}};
+    const totalFiles = {{fileCount}};
+    const prefix = "{{prefix}}";
+
+    // Virtual scroll configuration
+    const ITEM_HEIGHT = 40;
+    const BUFFER_SIZE = 5;
+
+    class VirtualScroll {
+      constructor(container, items) {
+        this.container = container;
+        this.content = document.getElementById('content');
+        this.spacer = document.getElementById('spacer');
+        this.allItems = items;
+        this.filteredItems = items;
+        this.visibleStart = 0;
+        this.visibleEnd = 0;
+        
+        this.container.addEventListener('scroll', () => this.render());
+        
+        this.render();
+      }
+
+      setItems(items) {
+        this.filteredItems = items;
+        this.container.scrollTop = 0;
+        this.render(true);
+      }
+
+      render(force = false) {
+        const scrollTop = this.container.scrollTop;
+        const containerHeight = this.container.clientHeight;
+        
+        const totalHeight = this.filteredItems.length * ITEM_HEIGHT;
+        this.spacer.style.height = totalHeight + 'px';
+        
+        const start = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER_SIZE);
+        const end = Math.min(
+          this.filteredItems.length,
+          Math.ceil((scrollTop + containerHeight) / ITEM_HEIGHT) + BUFFER_SIZE
+        );
+        
+        if (!force && start === this.visibleStart && end === this.visibleEnd) {
+          return;
+        }
+        
+        this.visibleStart = start;
+        this.visibleEnd = end;
+        
+        const fragment = document.createDocumentFragment();
+        
+        for (let i = start; i < end; i++) {
+          const item = this.filteredItems[i];
+          const div = this.createItemElement(item, i);
+          fragment.appendChild(div);
+        }
+        
+        this.content.innerHTML = '';
+        this.content.style.transform = `translateY(${start * ITEM_HEIGHT}px)`;
+        this.content.appendChild(fragment);
+      }
+
+      createItemElement(item, index) {
+        const div = document.createElement('div');
+        div.className = `item ${item.type}`;
+        
+        const icon = document.createElement('span');
+        icon.className = 'icon';
+        icon.textContent = item.icon;
+        
+        const link = document.createElement('a');
+        link.textContent = item.name;
+        
+        if (item.type === 'parent' || item.type === 'directory') {
+          link.href = `${prefix}/browse/${item.path}{{#if encodedArchive}}?archive={{encodedArchive}}{{/if}}`;
+        } else {
+          link.href = `${prefix}/file/${item.path}`;
+        }
+        
+        div.appendChild(icon);
+        div.appendChild(link);
+        
+        return div;
+      }
+    }
+
+    // Initialize virtual scroll
+    const scrollContainer = document.getElementById('scrollContainer');
+    const noResults = document.getElementById('noResults');
+    const visibleCount = document.getElementById('visibleCount');
+    const virtualScroll = new VirtualScroll(scrollContainer, allItems);
+
+    // Filter functionality
+    const filterInput = document.getElementById('filterInput');
+    let filterTimeout;
+
+    filterInput.addEventListener('input', function() {
+      clearTimeout(filterTimeout);
+      filterTimeout = setTimeout(() => {
+        const filterText = this.value.toLowerCase().trim();
+        
+        let filtered;
+        if (filterText === '') {
+          filtered = allItems;
+        } else {
+          filtered = allItems.filter(item => {
+            if (item.type === 'parent') return true;
+            return item.name.toLowerCase().includes(filterText);
+          });
+        }
+        
+        virtualScroll.setItems(filtered);
+        
+        // Update UI
+        if (filtered.length === 0 || (filtered.length === 1 && filtered[0].type === 'parent')) {
+          scrollContainer.style.display = 'none';
+          noResults.style.display = 'block';
+        } else {
+          scrollContainer.style.display = 'block';
+          noResults.style.display = 'none';
+        }
+        
+        // Update stats
+        const visibleDirs = filtered.filter(i => i.type === 'directory').length;
+        const visibleFiles = filtered.filter(i => i.type === 'file').length;
+        
+        if (filterText === '') {
+          visibleCount.textContent = `${totalDirs} folder${totalDirs !== 1 ? 's' : ''}, ${totalFiles} file${totalFiles !== 1 ? 's' : ''}`;
+        } else {
+          visibleCount.textContent = `Showing: ${visibleDirs} folder${visibleDirs !== 1 ? 's' : ''}, ${visibleFiles} file${visibleFiles !== 1 ? 's' : ''} (filtered)`;
+        }
+      }, 150); // Debounce for better performance
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.key === '/' && document.activeElement !== filterInput) {
+        e.preventDefault();
+        filterInput.focus();
+      }
+      if (e.key === 'Escape' && document.activeElement === filterInput) {
+        filterInput.value = '';
+        filterInput.dispatchEvent(new Event('input'));
+      }
+    });
+  </script>
+</body>
+</html>

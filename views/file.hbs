@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File: {{filename}}</title>
+  <link rel="stylesheet" href="{{prefix}}/styles/common.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📄 File Browser</h1>
+      <div class="breadcrumb">
+        <a href="{{prefix}}/browse">Home</a>
+        {{#each breadcrumbs}}
+          / <a href="{{../prefix}}/browse/{{this.path}}">{{this.name}}</a>
+        {{/each}}
+      </div>
+    </div>
+
+    <div class="file-info">
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">File Name</div>
+          <div class="info-value">{{filename}}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Available Sources</div>
+          <div class="info-value">{{fileCount}}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <h2 class="section-title">Download Sources ({{fileCount}})</h2>
+      
+      <ul class="source-list">
+        {{#each files}}
+          <li class="source-item">
+            <div class="source-info">
+              <div class="source-path" title="{{this.archivePath}}">{{this.archivePath}}</div>
+              <div class="source-details">
+                <div class="source-detail">
+                  <span>📏</span>
+                  <span>Size: {{formatBytes this.length}}</span>
+                </div>
+                <div class="source-detail">
+                  <span>🔢</span>
+                  <span>CRC32: {{formatCRC32 this.crc32}}</span>
+                </div>
+              </div>
+            </div>
+            <a href="{{../prefix}}/browse/?archive={{encodeArchivePath this.archivePath}}" class="download-btn browse-archive-btn">
+              <span>🔍</span>
+              <span>Browse Archive</span>
+            </a>
+            {{#if ../fpfssUrl}}
+              {{#with (getGameIdFromFilename this.archivePath)}}
+                <a href="{{../../fpfssUrl}}/web/game/{{this}}" class="download-btn view-fpfss-btn">
+                  <span>🔍</span>
+                  <span>View on FPFSS</span>
+                </a>
+              {{/with}}
+            {{/if}}
+            <a href="{{../prefix}}/api/archive/{{encodeArchivePath this.archivePath}}/download" class="download-btn download-archive-btn">
+              <span>⬇️</span>
+              <span>Download Archive</span>
+            </a>
+            <a href="{{../prefix}}/api/archive/{{encodeArchivePath this.archivePath}}/download/{{../filePath}}" class="download-btn download-file-btn">
+              <span>⬇️</span>
+              <span>Download File</span>
+            </a>
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Helper functions for formatting (if not using Handlebars helpers)
+  </script>
+</body>
+</html>
