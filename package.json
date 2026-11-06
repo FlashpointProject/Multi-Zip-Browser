@@ -12,20 +12,20 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "@fparchive/multi-zip-reader": "file:../tmp/multi-zip-reader.tgz",
     "@types/express": "^5.0.5",
     "@types/mongodb": "^4.0.6",
     "@types/node": "^22.19.1",
-    "@types/passport-oauth2": "^1.8.0",
+    "@types/passport-oauth2": "^1.8.0"
+  },
+  "dependencies": {
+    "@fparchive/multi-zip-reader": "1.0.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-handlebars": "^8.0.2",
-    "hbs": "^4.2.0",
     "mime": "^4.1.0",
     "mongodb": "^7.0.0",
+    "passport-oauth2": "^1.8.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "passport-oauth2": "^1.8.0"
   }
 }
