@@ -14,7 +14,7 @@
   "devDependencies": {
     "@types/express": "^5.0.5",
     "@types/mongodb": "^4.0.6",
-    "@types/node": "^22.19.1",
+    "@types/node": "26.6.6",
     "@types/passport-oauth2": "^1.8.0"
   },
   "dependencies": {
@@ -27,5 +27,8 @@
     "passport-oauth2": "^1.8.0",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }
