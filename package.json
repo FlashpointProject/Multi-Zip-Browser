@@ -18,7 +18,7 @@
     "@types/passport-oauth2": "^1.8.0"
   },
   "dependencies": {
-    "@fparchive/multi-zip-reader": "1.0.5",
+    "@fparchive/multi-zip-reader": "^1.1.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-handlebars": "^8.0.2",
